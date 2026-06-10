@@ -53,6 +53,36 @@ python eval/run_eval.py --k 10 --show-misses
 `ask.py` / `eval/run_eval.py` read this repo's `.env` first, falling back to the
 umbrella `.env`, so an existing umbrella `.env` keeps them running with no extra setup.
 
+## Run in Docker
+
+Same prerequisites as above (database container up, index built host-side). The
+container is **run-on-demand** — nothing listens, so there's no `up -d`:
+
+```bash
+docker compose run --rm engine                            # REPL (needs OPENAI_API_KEY)
+docker compose run --rm engine python eval/run_eval.py    # eval (no key needed)
+docker compose run --rm engine python eval/run_eval.py --k 10 --show-misses
+```
+
+Notes on how the image works:
+
+- This is an **ops tool, not part of the serving path**: the backend API does not
+  depend on this image — it copies the engine's leaf modules into its own image at
+  build time. The engine container's only runtime peer is Postgres.
+- It joins the vector-db repo's Compose network
+  (`vector-db-rag-context-pipeline_default`, declared `external`) and reaches
+  Postgres as `db:5432` — `DATABASE_URL` is set in `docker-compose.yml`.
+- `OPENAI_API_KEY` is interpolated from **this repo's** `.env` — the umbrella-`.env`
+  fallback doesn't apply inside the container, so the real key must live here
+  (the eval needs no key at all).
+- The embedding model (`BAAI/bge-small-en-v1.5`) is baked into the image at build
+  time; the torch-install layer is written to match the backend's Dockerfile so the
+  multi-GB layer is shared between the two images. If you change `EMBEDDING_MODEL`
+  in the indexer, rebuild with `--build-arg EMBEDDING_MODEL=...`.
+- `.env` files are deliberately excluded from the image
+  (`Dockerfile.dockerignore`): a baked-in `.env` would override the injected
+  `DATABASE_URL` and embed the API key.
+
 ## Tuning
 
 | Constant | File | Default |

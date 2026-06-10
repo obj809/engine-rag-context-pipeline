@@ -1,0 +1,11 @@
+# BuildKit per-Dockerfile ignore.
+#
+# **/.env is load-bearing, not hygiene: ask.py and eval/run_eval.py call
+# load_dotenv(REPO_ROOT/.env, override=True), so a baked-in .env would override
+# the container's injected DATABASE_URL with localhost — and bake the OpenAI key
+# into the image.
+**/.venv
+**/.git
+**/__pycache__
+**/.env
+**/*.md

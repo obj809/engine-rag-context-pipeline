@@ -1,0 +1,20 @@
+# Run-on-demand (no `up -d` — nothing listens):
+#   docker compose run --rm engine                            # REPL (needs OPENAI_API_KEY)
+#   docker compose run --rm engine python eval/run_eval.py    # eval (no key needed)
+# Prerequisites: cd ../vector-db-rag-context-pipeline && docker compose up -d
+#                (and the index built: cd ../indexing-rag-context-pipeline && python build_index.py)
+services:
+  engine:
+    build: .
+    stdin_open: true                                 # the REPL reads stdin
+    tty: true
+    environment:
+      DATABASE_URL: postgresql://rag:rag@db:5432/rag # `db` = service name on the shared network
+      OPENAI_API_KEY: ${OPENAI_API_KEY}              # interpolated from this repo's .env
+    networks:
+      - vector-db
+
+networks:
+  vector-db:
+    external: true
+    name: vector-db-rag-context-pipeline_default
