@@ -1,4 +1,4 @@
-# engine-rag-context-pipeline
+# Engine RAG Context Pipeline
 
 The query engine for the [RAG Context Pipeline](../): embeds a question, retrieves
 the top-k chunks from the Postgres `chunks` table (pgvector cosine distance), and
