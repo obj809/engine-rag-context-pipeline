@@ -13,7 +13,7 @@ One of the per-concern repos the pipeline is split into (`backend-`, `engine-`,
 
 ```
 retriever.py      # PgVectorRetriever(BaseRetriever) — pgvector SQL cosine search + BGE query prefix
-chain.py          # build_chain: retriever → prompt → LLM → text (LCEL)
+chain.py          # build_chain: retriever → prompt → LLM → text (LCEL); also exports the halves (format_docs, build_answer_chain) for streaming consumers
 load_index.py     # reads the embedding-model name recorded on the chunks table
 ask.py            # interactive REPL orchestrator (opens the connection, builds + invokes the chain)
 eval/
@@ -30,7 +30,9 @@ to a model that doesn't use prefixes, set `QUERY_PREFIX = ""`.
 
 Both the backend API and this REPL build the same retriever + chain — the backend
 imports these leaf modules over `sys.path` (until the engine is published as a
-package).
+package). The backend's streaming `/chat` endpoint uses the chain's exposed halves
+(`format_docs` + `build_answer_chain`) so it can retrieve eagerly and stream just
+the LLM part.
 
 ## Run
 
