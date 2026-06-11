@@ -14,24 +14,31 @@ SYSTEM_PROMPT = (
 )
 
 
-def _format_docs(docs: list[Document]) -> str:
+def format_docs(docs: list[Document]) -> str:
     return "\n\n---\n\n".join(
         f"[page {d.metadata.get('page', '?')}]\n{d.page_content}" for d in docs
     )
 
 
-def build_chain(retriever: BaseRetriever, llm: BaseChatModel) -> Runnable:
+def build_answer_chain(llm: BaseChatModel) -> Runnable:
+    """The generation half: {"context": str, "question": str} → prompt → LLM → text.
+
+    Exposed separately so callers that retrieve eagerly (e.g. the backend's
+    streaming /chat) can stream just the LLM part without holding a DB connection.
+    """
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", SYSTEM_PROMPT),
             ("human", "<context>\n{context}\n</context>\n\nQuestion: {question}"),
         ]
     )
+    return prompt | llm | StrOutputParser()
+
+
+def build_chain(retriever: BaseRetriever, llm: BaseChatModel) -> Runnable:
     # Chain input is the query string: it fans out to the retriever (for context)
     # and straight through (as the question), then prompt → LLM → plain text.
     return (
-        {"context": retriever | _format_docs, "question": RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | build_answer_chain(llm)
     )
