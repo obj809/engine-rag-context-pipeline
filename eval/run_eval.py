@@ -54,9 +54,10 @@ def main() -> None:
     ap.add_argument("--show-misses", action="store_true", help="print questions not hit within top-6")
     args = ap.parse_args()
 
-    # Repo-local .env wins; fall back to the umbrella .env during the multi-repo split.
+    # Precedence: real environment > repo-local .env > umbrella .env — an
+    # explicitly set env var is never overridden by a .env file.
+    load_dotenv(REPO_ROOT / ".env")
     load_dotenv(UMBRELLA / ".env")
-    load_dotenv(REPO_ROOT / ".env", override=True)
     dataset = load_dataset(DATASET)
 
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
