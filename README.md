@@ -1,5 +1,7 @@
 # Engine RAG Context Pipeline
 
+[![tests](https://github.com/obj809/engine-rag-context-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/obj809/engine-rag-context-pipeline/actions/workflows/tests.yml)
+
 The query engine for the [RAG Context Pipeline](../): embeds a question, retrieves
 the top-k chunks from the Postgres `chunks` table (pgvector cosine distance), and
 composes the answer as a LangChain LCEL chain (`retriever | prompt | llm | parser`)
@@ -84,6 +86,21 @@ Notes on how the image works:
 - `.env` files are deliberately excluded from the image
   (`Dockerfile.dockerignore`): a baked-in `.env` would override the injected
   `DATABASE_URL` and embed the API key.
+
+## Tests
+
+Unit tests for the three leaves (`tests/`, fakes in `tests/conftest.py`): the
+retriever's SQL/prefix/normalization contract, `format_docs` page citations, the
+chain halves against a fake LLM (including that `build_answer_chain` actually
+streams — the backend's `/chat` depends on it), and `load_index`'s
+`embedding_model` lookup. They run **offline**: no database, no OpenAI key, no
+model download. (`ask.py` is interactive glue and isn't covered; retrieval
+*quality* is the eval harness's job, below.)
+
+```bash
+pip install -r requirements-dev.txt   # pytest, on top of requirements.txt
+python -m pytest
+```
 
 ## Tuning
 
