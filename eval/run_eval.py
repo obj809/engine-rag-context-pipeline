@@ -1,15 +1,14 @@
 """Retrieval evaluation harness for the RAG pipeline.
 
 Runs each ground-truth question through the same PgVectorRetriever the app uses
-and reports retrieval quality — hit-rate@k and MRR — using the `page` each chunk
-came from as the relevance label. No OpenAI key required: this measures retrieval
+and reports retrieval quality — hit-rate@k and MRR — using the `(volume, page)` each
+chunk came from as the relevance label. No OpenAI key required: this measures retrieval
 only (the part that decides whether the right context ever reaches the LLM), so it
 runs offline and for free. Answer-quality scoring is a deliberate next increment.
 
-NOTE: dataset.jsonl is currently empty — the old net-zero ground truth was retired
-when the corpus changed to the EPBC Act volumes. EPBC questions still need authoring;
-because pages now repeat across the three volumes, the relevance label will need to
-become (volume, page) rather than page alone.
+Pages restart at 1 in each EPBC Act volume, so the relevance label is a (volume, page)
+pair, not a bare page. Each dataset row's `expected` is a list of `[volume, page]`
+pairs naming the location(s) in the Act where the answer text actually sits.
 
 Run:  python eval/run_eval.py                  (from this repo root; after building the index)
       python eval/run_eval.py --k 10 --show-misses
@@ -44,11 +43,10 @@ def load_dataset(path: Path) -> list[dict]:
         return [json.loads(line) for line in f if line.strip()]
 
 
-def first_hit_rank(retrieved_pages: list[int], expected: list[int]) -> int | None:
-    """1-based rank of the first retrieved page that is a relevant page, else None."""
-    expected_set = set(expected)
-    for rank, page in enumerate(retrieved_pages, start=1):
-        if page in expected_set:
+def first_hit_rank(retrieved: list[tuple], expected: set[tuple]) -> int | None:
+    """1-based rank of the first retrieved (volume, page) that is relevant, else None."""
+    for rank, loc in enumerate(retrieved, start=1):
+        if loc in expected:
             return rank
     return None
 
@@ -83,13 +81,14 @@ def main() -> None:
         ranks: list[int | None] = []
         for item in dataset:
             docs = retriever.invoke(item["question"])
-            pages = [d.metadata["page"] for d in docs]
-            rank = first_hit_rank(pages, item["expected_pages"])
+            locs = [(d.metadata["volume"], d.metadata["page"]) for d in docs]
+            expected = {tuple(x) for x in item["expected"]}
+            rank = first_hit_rank(locs, expected)
             ranks.append(rank)
             hit6 = "yes" if rank and rank <= 6 else "no"
             print(f"{(rank or '—'):>4}  {hit6:>5}  {item['question'][:56]}")
             if args.show_misses and (rank is None or rank > 6):
-                print(f"        expected {item['expected_pages']}, got {pages[:6]}")
+                print(f"        expected {sorted(expected)}, got {locs[:6]}")
 
         n = len(ranks)
         print("-" * 72)

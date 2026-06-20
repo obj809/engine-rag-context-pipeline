@@ -119,11 +119,13 @@ python -m pytest
 ## Note on eval
 
 `eval/run_eval.py` replays `dataset.jsonl` through the same `PgVectorRetriever` the
-app uses, scoring retrieval only (hit-rate@k, MRR) with each chunk's `page` as the
-relevance label — no OpenAI key, runs offline.
+app uses, scoring retrieval only (hit-rate@k, MRR) — no OpenAI key, runs offline.
+Pages restart per volume, so the relevance label is a `(volume, page)` pair: each
+row's `expected` lists the `[volume, page]` location(s) where the answer text sits
+in the Act.
 
-`dataset.jsonl` is **currently empty**: the old net-zero ground truth was retired
-when the corpus changed to the EPBC Act volumes, and `run_eval.py` reports "nothing
-to evaluate" until EPBC questions are authored. Because pages now repeat across the
-three volumes, the relevance label will need to become (volume, page) rather than
-page alone.
+`dataset.jsonl` holds 12 EPBC questions (MNES, the water trigger, penalties, the
+referral process, the Australian Whale Sanctuary, conservation agreements, …).
+Baseline on the current index: **hit-rate@1 50%, hit-rate@3/6/10 ≈ 92%, MRR ≈ 0.65**.
+The one consistent miss is "objects of the Act" (s 3) — "objects of this Part"
+recurs throughout the Act, so the s 3 page doesn't surface in the top-k.
