@@ -5,8 +5,8 @@
 The query engine for the [RAG Context Pipeline](../): embeds a question, retrieves
 the top-k chunks from the Postgres `chunks` table (pgvector cosine distance), and
 composes the answer as a LangChain LCEL chain (`retriever | prompt | llm | parser`)
-with inline `[page N]` citations. Ships with an interactive REPL and the retrieval
-eval harness.
+with inline `[Volume N, p.M]` citations. Ships with an interactive REPL and the
+retrieval eval harness.
 
 One of the per-concern repos the pipeline is split into (`backend-`, `engine-`,
 `indexing-`, `vector-db-rag-context-pipeline`). This repo owns the **query side**.
@@ -120,6 +120,10 @@ python -m pytest
 
 `eval/run_eval.py` replays `dataset.jsonl` through the same `PgVectorRetriever` the
 app uses, scoring retrieval only (hit-rate@k, MRR) with each chunk's `page` as the
-relevance label — no OpenAI key, runs offline. Questions whose answers live in
-chart/figure pixels (not extracted by the indexer) are flagged
-`"chart_dependent": true` in the dataset.
+relevance label — no OpenAI key, runs offline.
+
+`dataset.jsonl` is **currently empty**: the old net-zero ground truth was retired
+when the corpus changed to the EPBC Act volumes, and `run_eval.py` reports "nothing
+to evaluate" until EPBC questions are authored. Because pages now repeat across the
+three volumes, the relevance label will need to become (volume, page) rather than
+page alone.
