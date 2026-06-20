@@ -29,7 +29,10 @@ class PgVectorRetriever(BaseRetriever):
         # Vectors are unit-normalized, so cosine distance (<=>) ranks identically to
         # cosine similarity — ascending distance == most similar first.
         rows = self.conn.execute(
-            "SELECT content, page FROM chunks ORDER BY embedding <=> %s LIMIT %s",
+            "SELECT content, page, volume FROM chunks ORDER BY embedding <=> %s LIMIT %s",
             (q, self.k),
         ).fetchall()
-        return [Document(page_content=r[0], metadata={"page": r[1]}) for r in rows]
+        return [
+            Document(page_content=r[0], metadata={"page": r[1], "volume": r[2]})
+            for r in rows
+        ]

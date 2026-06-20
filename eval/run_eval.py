@@ -6,6 +6,11 @@ came from as the relevance label. No OpenAI key required: this measures retrieva
 only (the part that decides whether the right context ever reaches the LLM), so it
 runs offline and for free. Answer-quality scoring is a deliberate next increment.
 
+NOTE: dataset.jsonl is currently empty — the old net-zero ground truth was retired
+when the corpus changed to the EPBC Act volumes. EPBC questions still need authoring;
+because pages now repeat across the three volumes, the relevance label will need to
+become (volume, page) rather than page alone.
+
 Run:  python eval/run_eval.py                  (from this repo root; after building the index)
       python eval/run_eval.py --k 10 --show-misses
 Env:  DATABASE_URL  (this repo's .env first, then the umbrella .env)
@@ -59,6 +64,10 @@ def main() -> None:
     load_dotenv(REPO_ROOT / ".env")
     load_dotenv(UMBRELLA / ".env")
     dataset = load_dataset(DATASET)
+    if not dataset:
+        print(f"No questions in {DATASET.name} — nothing to evaluate. "
+              "Author EPBC ground-truth questions to re-enable the eval.")
+        return
 
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         register_vector(conn)

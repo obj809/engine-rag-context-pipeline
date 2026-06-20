@@ -19,8 +19,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from retriever import PgVectorRetriever
 
-FAKE_ANSWER = "The target year is 2050 [page 96]."
-FAKE_ROWS = [("Net zero by 2050 is the national commitment.", 96), ("Sector pathways differ.", 4)]
+FAKE_ANSWER = "Protected matters are listed in Part 3 [Volume 1, p.96]."
+# (content, page, volume) — matches the retriever's SELECT content, page, volume.
+FAKE_ROWS = [
+    ("Matters of national environmental significance are in Part 3.", 96, "Volume 1"),
+    ("Bilateral agreements are covered in Part 5.", 4, "Volume 2"),
+]
 
 
 class FakeEmbedder:

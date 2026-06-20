@@ -6,9 +6,11 @@ from conftest import FAKE_ROWS
 from retriever import QUERY_PREFIX
 
 
-def test_rows_become_documents_with_page_metadata(retriever):
+def test_rows_become_documents_with_page_and_volume_metadata(retriever):
     docs = retriever.invoke("what is the target year?")
-    assert [(d.page_content, d.metadata["page"]) for d in docs] == FAKE_ROWS
+    assert [
+        (d.page_content, d.metadata["page"], d.metadata["volume"]) for d in docs
+    ] == FAKE_ROWS
 
 
 def test_query_gets_bge_instruction_prefix(retriever, embedder):

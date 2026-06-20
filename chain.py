@@ -8,16 +8,21 @@ from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable, RunnablePassthrough
 
 SYSTEM_PROMPT = (
-    "You answer questions about a document using only the provided context. "
-    "If the answer is not in the context, say so plainly. Cite specific phrases when "
-    "possible, and reference the page number (shown as [page N]) for the facts you use."
+    "You answer questions about the Environment Protection and Biodiversity Conservation "
+    "Act 1999 using only the provided context. If the answer is not in the context, say so "
+    "plainly. Cite specific phrases when possible, and reference the volume and page (shown "
+    "as [Volume N, p.M]) for the facts you use."
 )
 
 
+def _citation(doc: Document) -> str:
+    page = doc.metadata.get("page", "?")
+    volume = doc.metadata.get("volume")
+    return f"{volume}, p.{page}" if volume else f"p.{page}"
+
+
 def format_docs(docs: list[Document]) -> str:
-    return "\n\n---\n\n".join(
-        f"[page {d.metadata.get('page', '?')}]\n{d.page_content}" for d in docs
-    )
+    return "\n\n---\n\n".join(f"[{_citation(d)}]\n{d.page_content}" for d in docs)
 
 
 def build_answer_chain(llm: BaseChatModel) -> Runnable:
