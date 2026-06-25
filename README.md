@@ -107,7 +107,7 @@ python -m pytest
 | Constant | File | Default |
 |---|---|---|
 | `TOP_K` | `ask.py` | 6 chunks |
-| `OPENAI_MODEL` | `ask.py` | `gpt-5.4-nano` |
+| `OPENAI_MODEL` | `ask.py` | `gpt-5.4-mini` |
 | `QUERY_PREFIX` | `retriever.py` | BGE instruction prefix |
 
 ## Required environment variables
