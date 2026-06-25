@@ -113,6 +113,9 @@ python -m pytest
 ## Required environment variables
 
 - `OPENAI_API_KEY` — answer generation (the REPL). The eval harness needs none.
+  With `OPENAI_BASE_URL` set this is the LiteLLM proxy's key, not the raw OpenAI key.
+- `OPENAI_BASE_URL` — **optional**. Unset → the REPL calls OpenAI directly. Set
+  (e.g. `http://localhost:4000/v1`) → routes through a LiteLLM/OpenAI-compatible proxy.
 - `DATABASE_URL` — e.g. `postgresql://rag:rag@localhost:5432/rag`, matching
   `vector-db-rag-context-pipeline/docker-compose.yml`.
 

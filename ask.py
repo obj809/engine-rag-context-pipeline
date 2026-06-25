@@ -3,6 +3,8 @@
 Run:  python ask.py     (from this repo root)
 Deps: langchain-core, langchain-openai, sentence-transformers, numpy, psycopg, pgvector
 Env:  OPENAI_API_KEY, DATABASE_URL  (this repo's .env first, then the umbrella .env)
+      OPENAI_BASE_URL (optional) — point at a LiteLLM/OpenAI-compatible proxy;
+      when set, OPENAI_API_KEY is that proxy's key. Unset = direct OpenAI.
 Note: build the index first — cd ../indexing-rag-context-pipeline && python build_index.py
       (and start the DB — cd ../vector-db-rag-context-pipeline && docker compose up -d).
 """
@@ -39,7 +41,8 @@ def main() -> None:
         model = SentenceTransformer(embedding_model)
 
         retriever = PgVectorRetriever(conn=conn, embedder=model, k=TOP_K)
-        llm = ChatOpenAI(model=OPENAI_MODEL)    # reads OPENAI_API_KEY
+        # base_url unset → direct OpenAI; set → route via a LiteLLM/OpenAI-compatible proxy.
+        llm = ChatOpenAI(model=OPENAI_MODEL, base_url=os.getenv("OPENAI_BASE_URL") or None)
         chain = build_chain(retriever, llm)
 
         print("Ready. Ask a question (Ctrl-C / empty line to exit).")
