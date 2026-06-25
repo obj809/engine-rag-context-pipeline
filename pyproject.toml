@@ -1,0 +1,37 @@
+# Packaging for the query engine — makes the flat leaf modules an installable
+# `rag-engine` distribution so consumers (the backend) `pip install` it instead
+# of putting this repo's root on sys.path.
+#
+# Flat-layout packaging (deliberate): `py-modules` ships the existing top-level
+# `.py` files as-is — no package directory, no __init__.py, no file moves — so
+# `import chain` / `retriever` / `load_index` resolve unchanged and the engine's
+# own flat imports (ask.py, eval/, tests/) keep working. See TODO.md item 1 for
+# the future namespace-package (`rag_engine.*`) follow-up.
+#
+# Runtime deps below mirror requirements.txt; keep the two in sync until the
+# engine Dockerfile is reordered to install from this file (then requirements.txt
+# can collapse to `-e .`).
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-engine"
+version = "0.1.0"
+description = "Query side of the RAG context pipeline: pgvector retrieval + LCEL answer chain."
+requires-python = ">=3.9"
+dependencies = [
+    "langchain-core",
+    "langchain-openai",
+    "sentence-transformers",
+    "numpy",
+    "psycopg[binary]",
+    "pgvector",
+]
+
+[project.scripts]
+rag-ask = "ask:main"
+
+[tool.setuptools]
+py-modules = ["chain", "retriever", "load_index", "ask"]
