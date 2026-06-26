@@ -31,8 +31,9 @@ raw `sentence-transformers`. **BGE asymmetric retrieval:** queries get the
 to a model that doesn't use prefixes, set `QUERY_PREFIX = ""`.
 
 Both the backend API and this REPL build the same retriever + chain — the backend
-imports these leaf modules over `sys.path` (until the engine is published as a
-package). The backend's streaming `/chat` endpoint uses the chain's exposed halves
+imports these leaf modules from the installed `rag-engine` package (this repo,
+packaged via `pyproject.toml` and pinned in the backend's `requirements.txt`). The
+backend's streaming `/chat` endpoint uses the chain's exposed halves
 (`format_docs` + `build_answer_chain`) so it can retrieve eagerly and stream just
 the LLM part.
 
@@ -71,8 +72,8 @@ docker compose run --rm engine python eval/run_eval.py --k 10 --show-misses
 Notes on how the image works:
 
 - This is an **ops tool, not part of the serving path**: the backend API does not
-  depend on this image — it copies the engine's leaf modules into its own image at
-  build time. The engine container's only runtime peer is Postgres.
+  depend on this image — it installs the engine as the pinned `rag-engine` package
+  from its Git repo at build time. The engine container's only runtime peer is Postgres.
 - It joins the vector-db repo's Compose network
   (`vector-db-rag-context-pipeline_default`, declared `external`) and reaches
   Postgres as `db:5432` — `DATABASE_URL` is set in `docker-compose.yml`.
