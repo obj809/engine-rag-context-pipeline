@@ -13,8 +13,12 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}              # interpolated from this repo's .env
     networks:
       - vector-db
+      - webnet
 
 networks:
   vector-db:
     external: true
     name: vector-db-rag-context-pipeline_default
+  webnet:
+    external: true
+    name: webnet

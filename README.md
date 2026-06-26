@@ -74,9 +74,12 @@ Notes on how the image works:
 - This is an **ops tool, not part of the serving path**: the backend API does not
   depend on this image — it installs the engine as the pinned `rag-engine` package
   from its Git repo at build time. The engine container's only runtime peer is Postgres.
-- It joins the vector-db repo's Compose network
-  (`vector-db-rag-context-pipeline_default`, declared `external`) and reaches
-  Postgres as `db:5432` — `DATABASE_URL` is set in `docker-compose.yml`.
+- It joins two **external** networks: the vector-db repo's Compose network
+  (`vector-db-rag-context-pipeline_default`) to reach Postgres as `db:5432`, and
+  the shared `webnet` bridge (so it sits on the same host-wide network as the
+  project's other containers). `DATABASE_URL` is set in `docker-compose.yml`; both
+  networks must already exist (`webnet` via `docker network create webnet`) before
+  `docker compose run`.
 - `OPENAI_API_KEY` is interpolated from **this repo's** `.env` — the umbrella-`.env`
   fallback doesn't apply inside the container, so the real key must live here
   (the eval needs no key at all).
