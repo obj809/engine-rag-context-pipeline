@@ -9,8 +9,9 @@ FROM python:3.12-slim
 
 # Install torch from the CPU-only index first; PyPI's default wheels (amd64 AND
 # aarch64) bundle the multi-GB CUDA/nvidia libraries, which this never uses.
-# Keep this line identical to the backend Dockerfile's so the layer is shared.
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+# Pinned for a reproducible build. Keep this line byte-identical to the
+# backend/indexer Dockerfiles (same pin) so the multi-GB layer stays shared.
+RUN pip install --no-cache-dir torch==2.12.0 --index-url https://download.pytorch.org/whl/cpu
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
