@@ -31,6 +31,14 @@ SYSTEM_PROMPT = (
     "source as the Act."
 )
 
+CONDENSE_PROMPT = (
+    "Given a conversation and a follow-up question, rephrase the follow-up into a "
+    "standalone question that can be understood without the conversation. Resolve "
+    "any pronouns or references (e.g. 'it', 'that', 'those') to what they refer to "
+    "in the conversation. If the follow-up is already self-contained, return it "
+    "unchanged. Output ONLY the rewritten question, with no preamble or quotes."
+)
+
 
 def _citation(doc: Document) -> str:
     page = doc.metadata.get("page", "?")
@@ -40,6 +48,36 @@ def _citation(doc: Document) -> str:
 
 def format_docs(docs: list[Document]) -> str:
     return "\n\n---\n\n".join(f"[{_citation(d)}]\n{d.page_content}" for d in docs)
+
+
+def format_history(messages: list[tuple[str, str]], max_messages: int = 6) -> str:
+    """Render the most recent (role, content) turns into a plain transcript.
+
+    Bounded to the last `max_messages` so the condensation prompt stays cheap;
+    that window covers typical pronoun/ellipsis references without bloating it.
+    """
+    return "\n".join(f"{role}: {content}" for role, content in messages[-max_messages:])
+
+
+def build_condense_chain(llm: BaseChatModel) -> Runnable:
+    """History + follow-up → a self-contained question string, for retrieval.
+
+    A cheap pre-retrieval LLM pass: {"chat_history": str, "question": str} →
+    prompt → LLM → text. Callers with no prior history should skip this and
+    retrieve on the raw question. Keeps the retriever and answer chain
+    single-question — the rewrite only sharpens what gets embedded.
+    """
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", CONDENSE_PROMPT),
+            (
+                "human",
+                "Conversation:\n{chat_history}\n\n"
+                "Follow-up question: {question}\n\nStandalone question:",
+            ),
+        ]
+    )
+    return prompt | llm | StrOutputParser()
 
 
 def build_answer_chain(llm: BaseChatModel) -> Runnable:

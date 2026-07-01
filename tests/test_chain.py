@@ -9,7 +9,14 @@ from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage
 
 from conftest import FAKE_ANSWER, FAKE_ROWS, RecordingChatModel
-from chain import SYSTEM_PROMPT, build_answer_chain, build_chain, format_docs
+from chain import (
+    SYSTEM_PROMPT,
+    build_answer_chain,
+    build_chain,
+    build_condense_chain,
+    format_docs,
+    format_history,
+)
 
 
 def _doc(text, page=None, volume=None):
@@ -54,3 +61,27 @@ def test_answer_chain_streams_text_fragments():
     )
     assert len(chunks) > 1  # actually incremental, not one blob
     assert "".join(chunks) == FAKE_ANSWER
+
+
+def test_format_history_renders_recent_turns():
+    history = [("user", "q1"), ("assistant", "a1"), ("user", "q2")]
+    assert format_history(history) == "user: q1\nassistant: a1\nuser: q2"
+
+
+def test_format_history_bounds_the_window():
+    history = [("user", f"m{i}") for i in range(10)]
+    out = format_history(history, max_messages=3)
+    assert out == "user: m7\nuser: m8\nuser: m9"
+
+
+def test_condense_chain_feeds_history_and_followup_to_the_llm():
+    llm = RecordingChatModel(calls=[])
+    out = build_condense_chain(llm).invoke(
+        {"chat_history": "user: What is a controlled action?", "question": "What are the penalties for it?"}
+    )
+    assert out == FAKE_ANSWER  # RecordingChatModel echoes FAKE_ANSWER as the "rewrite"
+
+    (system, human), = llm.calls
+    assert "standalone" in system.content.lower()
+    assert "What is a controlled action?" in human.content
+    assert "What are the penalties for it?" in human.content
