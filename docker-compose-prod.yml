@@ -4,12 +4,6 @@
 #   docker compose -f docker-compose-prod.yml run --rm engine                         # REPL
 #   docker compose -f docker-compose-prod.yml run --rm engine python eval/run_eval.py # eval (no key)
 #
-# Differences from dev (docker-compose.yml):
-#   - routes the LLM call through the LiteLLM gateway (OPENAI_BASE_URL) like the
-#     backend, so OPENAI_API_KEY is the LiteLLM virtual key (REPL only; the eval
-#     makes no LLM call and needs no key).
-#   - resource limits sized for the 2 vCPU / 7.9 GB VPS (loads torch + BGE model).
-#   - deliberately NO restart policy — a run-on-demand tool must not be relaunched.
 # Joins vector-db (Postgres as db:5432) + webnet (LiteLLM as litellm:4000).
 # Prereqs: the vector-db prod stack up; docker network create webnet; a .env with
 #   OPENAI_API_KEY for the REPL (the eval runs without it).

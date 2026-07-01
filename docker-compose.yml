@@ -1,8 +1,7 @@
 # Run-on-demand (no `up -d` — nothing listens):
 #   docker compose run --rm engine                            # REPL (needs OPENAI_API_KEY)
 #   docker compose run --rm engine python eval/run_eval.py    # eval (no key needed)
-# Prerequisites: cd ../vector-db-rag-context-pipeline && docker compose up -d
-#                (and the index built: cd ../indexing-rag-context-pipeline && python build_index.py)
+#
 services:
   engine:
     build: .

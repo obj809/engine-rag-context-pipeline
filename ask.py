@@ -22,8 +22,8 @@ from chain import build_chain
 from load_index import load_index
 from retriever import PgVectorRetriever
 
-REPO_ROOT = Path(__file__).resolve().parent     # engine-rag-context-pipeline/
-UMBRELLA = REPO_ROOT.parent                      # rag-context-pipeline/ (transitional fallback)
+REPO_ROOT = Path(__file__).resolve().parent
+UMBRELLA = REPO_ROOT.parent
 TOP_K = 6
 OPENAI_MODEL = "gpt-5.4-mini"
 
