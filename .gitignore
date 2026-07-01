@@ -3,3 +3,8 @@
 __pycache__/
 .DS_Store
 commands.md
+
+# Python build artifacts (a stale committed egg-info poisons git-URL install metadata)
+*.egg-info/
+build/
+dist/

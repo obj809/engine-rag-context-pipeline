@@ -1,6 +1,7 @@
 # Engine RAG Context Pipeline
 
 [![tests](https://github.com/obj809/engine-rag-context-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/obj809/engine-rag-context-pipeline/actions/workflows/tests.yml)
+[![version](https://img.shields.io/github/v/tag/obj809/engine-rag-context-pipeline?sort=semver&label=version)](https://github.com/obj809/engine-rag-context-pipeline/tags)
 
 The query engine for the [RAG Context Pipeline](../): embeds a question, retrieves
 the top-k chunks from the Postgres `chunks` table (pgvector cosine distance), and
