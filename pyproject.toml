@@ -18,7 +18,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag-engine"
-version = "0.1.0"
+version = "0.2.0"
 description = "Query side of the RAG context pipeline: pgvector retrieval + LCEL answer chain."
 requires-python = ">=3.9"
 dependencies = [
